@@ -1,11 +1,11 @@
 import socket
 import sqlite3
 from urllib import parse
-import webbrowser
+import time
 
 HOST, PORT = '', 8001
 
-list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "date", "duration", "maxDepth", "sensorName"]
+list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "date", "duration", "maxDepth", "minDepth", "sensor"]
 
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -14,7 +14,7 @@ listen_socket.listen(1)
 print('Serving HTTP on port %s ...' % PORT)
 
 
-conn = sqlite3.connect("database.db")
+conn = sqlite3.connect("../database.db")
 c = conn.cursor()
 
 def get_args(r):
@@ -32,7 +32,7 @@ def get_logs(args):
 
     query = str('SELECT DISTINCT * FROM ')
 
-    if 'sensorName' in args:
+    if 'sensor' in args:
         query += 'log_sensor, sensor, '
 
     query += 'log '
@@ -43,16 +43,27 @@ def get_logs(args):
         for key, value in args.items():
             tmp = str()
 
-            if key == 'sensorName':
-                tmp = "Sensor."
+            if key == 'sensor':
+                tmp = "Sensor.sensorName"
+            elif key == "minDepth":
+                tmp += "maxDepth"
+            else:
+                tmp += key
 
-            tmp += key + ' LIKE ' + '\"' + value + '\"'
+            if key == "minDepth":
+                tmp += ">" + value
+            elif key == "maxDepth":
+                tmp += "<" + value
+            else:
+                tmp +=' LIKE ' + '\"' + value + '\"'
+
             query += tmp
+
             if i < len(args) - 1:
                 query += ' AND '
             i+=1
 
-        if 'sensorName' in args:
+        if 'sensor' in args:
             query += ' AND log_sensor.logName LIKE log.name AND log_sensor.sensorName LIKE sensor.sensorName '
             query += " group by log.name, sensor.sensorName"
         else:
@@ -65,10 +76,19 @@ def get_logs(args):
     rows = c.fetchall()
 
     print(len(rows))
-    for row in rows:
-        print(row)
 
     return rows
+
+def send_logs(logs):
+
+    http_response = str(len(logs))
+    client_connection.sendall(http_response.encode('utf-8'))
+
+    for i in range(len(logs)):
+        http_response = str(logs[i])
+        print( str(i) +": " + str(logs[i]))
+        client_connection.sendall(http_response.encode('utf-8'))
+        time.sleep(0.001)
 
 while True:
     client_connection, client_address = listen_socket.accept()
@@ -82,6 +102,6 @@ while True:
 
     logs = get_logs(args)
 
-    http_response = "HTTP/1.1 200 OK  Hello, World!"
-    client_connection.sendall(http_response.encode())
+    send_logs(logs)
+
     client_connection.close()
