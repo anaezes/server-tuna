@@ -13,30 +13,37 @@ client.connect(('0.0.0.0', 8001))
 def get_str_args():
         args = str("/?")
 
+        # todo ver como é possivel fazer as junções com os "&"
+
+        print("Name: ")
+        name = input()
+        #if name != "":
+        args += "name=" + name
+
         print("Year: ")
         year = input()
-        if year != "none":
-            args += "year=" + year
+       # if year != "":
+        args += "&year=" + year
 
         print("Vehicle: ")
         vehicle = input()
-        if vehicle != "":
-            args += "&vehicle=" + vehicle
+       # if vehicle != "":
+        args += "&vehicle=" + vehicle
 
         print("Sensor: ")
         sensor = input()
-        if sensor != "":
-            args += "&sensor=" + sensor
+        #if sensor != "":
+        args += "&sensor=" + sensor
 
         print("Depth min: ")
         minDepth = input()
-        if minDepth != "":
-            args += "&minDepth=" + minDepth
+        #if minDepth != "":
+        args += "&minDepth=" + minDepth
 
         print("Depth max: ")
         maxDepth = input()
-        if maxDepth != "":
-            args += "&maxDepth=" + maxDepth
+        #if maxDepth != "":
+        args += "&maxDepth=" + maxDepth
 
 
         return args
@@ -51,13 +58,10 @@ data = 'GET ' + args + ' HTTP/1.1\r\nHost: {}.{}\r\n\r\n'
 client.send(data.format(sld, tld).encode('utf-8'))
 
 # receive the response data (4096 is recommended buffer size)
-n_results = int(client.recv(4096).decode('utf-8'))
+n_results = int(client.recv(32).decode('utf-8'))
 
 print(n_results)
 
-def threaded_function(arg):
-    for i in range(arg):
-        response = client.recv(4096).decode('utf-8')
-        print( str(i) + ": "+ response)
-
-threaded_function(n_results)
+for i in range(n_results):
+    response = client.recv(32768).decode('utf-8') #TODO LIMIT 4096 
+    print(str(i) + ": " + response)
