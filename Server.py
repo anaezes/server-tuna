@@ -64,8 +64,10 @@ def get_logs(args):
             i+=1
 
         if 'sensor' in args:
-            query += ' AND log_sensor.logName LIKE log.name AND log_sensor.sensorName LIKE sensor.sensorName '
-            query += " group by log.name, sensor.sensorName"
+            query += ' AND log_sensor.logName ' \
+                     'LIKE log.name AND log_sensor.sensorName' \
+                     'LIKE sensor.sensorName ' \
+                     'GROUP BY log.name, sensor.sensorName'
         else:
             query += " group by log.name "
 
@@ -83,12 +85,12 @@ def send_logs(logs):
 
     http_response = str(len(logs))
     client_connection.sendall(http_response.encode('utf-8'))
+    time.sleep(0.1)
 
     for i in range(len(logs)):
         http_response = str(logs[i])
-        print( str(i) +": " + str(logs[i]))
         client_connection.sendall(http_response.encode('utf-8'))
-        time.sleep(0.001)
+        time.sleep(0.05)
 
 while True:
     client_connection, client_address = listen_socket.accept()
