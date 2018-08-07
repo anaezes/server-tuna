@@ -51,16 +51,13 @@ def get_correct_params(key):
     if key == "minDepth":
         return "maxDepth"
 
-    if any([key == "minDuration",
-            key == "maxDuration"]):
+    if key in ["minDuration", "maxDuration"]:
         return "duration"
 
-    if any([key == "maxDistTravelled",
-            key == "minDistTravelled"]):
+    if key in ["maxDistTravelled","minDistTravelled"]:
         return "distTravelled"
 
-    if any([key == "minDate",
-            key == "maxDate"]):
+    if key in ["minDate", "maxDate"]:
         return "cast(date as datetime)"
 
 
@@ -79,27 +76,27 @@ def get_query(args):
         for key, value in args.items():
             tmp = str()
 
-            if any([key == 'sensor',
-                    key == 'minDepth',
-                    key == 'minDuration',
-                    key == 'maxDuration',
-                    key == 'maxDistTravelled',
-                    key == 'minDistTravelled',
-                    key == 'minDate',
-                    key == 'maxDate']):
+            if key in [ 'sensor',
+                    'minDepth',
+                    'minDuration',
+                    'maxDuration',
+                    'maxDistTravelled',
+                    'minDistTravelled',
+                    'minDate',
+                    'maxDate']:
                 tmp += get_correct_params(key)
             else:
                 tmp += key
 
-            if any([key == "minDepth",
-                    key == "minDuration",
-                    key == "minDate",
-                    key == "minDistTravelled"]):
+            if key in ["minDepth",
+                    "minDuration",
+                    "minDate",
+                    "minDistTravelled"]:
                 tmp += ">=" + value
-            elif any([key == "maxDepth",
-                      key == "maxDuration",
-                      key == "maxDate",
-                      key == "maxDistTravelled"]):
+            elif key in ["maxDepth",
+                      "maxDuration",
+                      "maxDate",
+                      "maxDistTravelled"]:
                 tmp += "<=" + value
             else:
                 tmp += ' LIKE ' + '\"' + value + '\"'
@@ -125,12 +122,10 @@ def get_query(args):
 def get_logs(args):
 
     query = get_query(args)
-
     print(query)
 
     c.execute(query)
     rows = c.fetchall()
-
     print(len(rows))
 
     return rows
