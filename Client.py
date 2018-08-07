@@ -3,6 +3,9 @@ import socket
 hostname, sld, tld, port = 'www', 'integralist', 'co.uk', 80
 target = '{}.{}.{}'.format(hostname, sld, tld)
 
+list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "date", "duration", "maxDepth", "minDepth", "sensor"]
+
+
 # create an ipv4 (AF_INET) socket object using the tcp protocol (SOCK_STREAM)
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -13,41 +16,17 @@ client.connect(('0.0.0.0', 8001))
 def get_str_args():
         args = str("/?")
 
-        # todo ver como é possivel fazer as junções com os "&"
-
-        print("Name: ")
-        name = input()
-        #if name != "":
-        args += "name=" + name
-
-        print("Year: ")
-        year = input()
-       # if year != "":
-        args += "&year=" + year
-
-        print("Vehicle: ")
-        vehicle = input()
-       # if vehicle != "":
-        args += "&vehicle=" + vehicle
-
-        print("Sensor: ")
-        sensor = input()
-        #if sensor != "":
-        args += "&sensor=" + sensor
-
-        print("Depth min: ")
-        minDepth = input()
-        #if minDepth != "":
-        args += "&minDepth=" + minDepth
-
-        print("Depth max: ")
-        maxDepth = input()
-        #if maxDepth != "":
-        args += "&maxDepth=" + maxDepth
-
+        was_previous = False
+        for arg in list_args:
+                print(arg + ":")
+                tmp = input()
+                if tmp != "":
+                    if was_previous:
+                        args += "&"
+                    args += arg + "=" + tmp
+                    was_previous = True
 
         return args
-
 
 args = get_str_args()
 print(args)
