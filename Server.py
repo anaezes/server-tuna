@@ -5,7 +5,20 @@ import time
 
 HOST, PORT = '', 8001
 
-list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "minDate", "maxDate", "minDuration", "maxDuration", "maxDepth", "minDepth", "sensor"]
+list_args = ["name",
+             "vehicle",
+             "year",
+             "minDistTravelled",
+             "maxDistTravelled",
+             "startLat",
+             "startLon",
+             "minDate",
+             "maxDate",
+             "minDuration",
+             "maxDuration",
+             "maxDepth",
+             "minDepth",
+             "sensor"]
 
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -28,8 +41,31 @@ def get_args(r):
             continue
     return args
 
-def get_logs(args):
 
+
+def get_correct_params(key):
+
+    if key == 'sensor':
+        return "Sensor.sensorName"
+
+    if key == "minDepth":
+        return "maxDepth"
+
+    if any([key == "minDuration",
+            key == "maxDuration"]):
+        return "duration"
+
+    if any([key == "maxDistTravelled",
+            key == "minDistTravelled"]):
+        return "distTravelled"
+
+    if any([key == "minDate",
+            key == "maxDate"]):
+        return "cast(date as datetime)"
+
+
+
+def get_query(args):
     query = str('SELECT DISTINCT * FROM ')
 
     if 'sensor' in args:
@@ -43,29 +79,36 @@ def get_logs(args):
         for key, value in args.items():
             tmp = str()
 
-            if key == 'sensor':
-                tmp = "Sensor.sensorName"
-            elif key == "minDepth":
-                tmp += "maxDepth"
-            elif key == "minDuration" or key == "maxDuration":
-                tmp += "duration"
-            elif key == "minDate" or key == "maxDate":
-                tmp += "cast(date as datetime)"
+            if any([key == 'sensor',
+                    key == 'minDepth',
+                    key == 'minDuration',
+                    key == 'maxDuration',
+                    key == 'maxDistTravelled',
+                    key == 'minDistTravelled',
+                    key == 'minDate',
+                    key == 'maxDate']):
+                tmp += get_correct_params(key)
             else:
                 tmp += key
 
-            if key == "minDepth" or key == "minDuration" or key == "minDate":
+            if any([key == "minDepth",
+                    key == "minDuration",
+                    key == "minDate",
+                    key == "minDistTravelled"]):
                 tmp += ">=" + value
-            elif key == "maxDepth" or key == "maxDuration" or key == "maxDate":
+            elif any([key == "maxDepth",
+                      key == "maxDuration",
+                      key == "maxDate",
+                      key == "maxDistTravelled"]):
                 tmp += "<=" + value
             else:
-                tmp +=' LIKE ' + '\"' + value + '\"'
+                tmp += ' LIKE ' + '\"' + value + '\"'
 
             query += tmp
 
             if i < len(args) - 1:
                 query += ' AND '
-            i+=1
+            i += 1
 
         if 'sensor' in args:
             query += ' AND log_sensor.logName ' \
@@ -75,6 +118,13 @@ def get_logs(args):
         else:
             query += " group by log.name "
 
+    return query
+
+
+
+def get_logs(args):
+
+    query = get_query(args)
 
     print(query)
 
@@ -84,6 +134,8 @@ def get_logs(args):
     print(len(rows))
 
     return rows
+
+
 
 def send_logs(logs):
 
