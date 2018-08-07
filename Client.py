@@ -1,6 +1,6 @@
 import socket
 
-hostname, sld, tld, port = 'www', 'integralist', 'co.uk', 80
+hostname, sld, tld, port = 'www', 'tuna-server', 'pt', 80
 target = '{}.{}.{}'.format(hostname, sld, tld)
 
 list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "date", "duration", "maxDepth", "minDepth", "sensor"]
@@ -41,6 +41,9 @@ n_results = int(client.recv(32).decode('utf-8'))
 
 print(n_results)
 
-for i in range(n_results):
-    response = client.recv(32768).decode('utf-8') #TODO LIMIT 4096 
-    print(str(i) + ": " + response)
+response = eval(client.recv(32768*n_results).decode('utf-8'))
+
+i = 0
+while i < len(response):
+    print(str(i+1) + ": " + str(response[i]))
+    i += 1

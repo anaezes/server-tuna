@@ -87,10 +87,9 @@ def send_logs(logs):
     client_connection.sendall(http_response.encode('utf-8'))
     time.sleep(0.1)
 
-    for i in range(len(logs)):
-        http_response = str(logs[i])
-        client_connection.sendall(http_response.encode('utf-8'))
-        time.sleep(0.05)
+    http_response = str(logs)
+    client_connection.sendall(http_response.encode('utf-8'))
+
 
 while True:
     client_connection, client_address = listen_socket.accept()
@@ -100,7 +99,6 @@ while True:
     print(r[1])
 
     args = dict(get_args(r[1]))
-    print(args)
 
     logs = get_logs(args)
 
