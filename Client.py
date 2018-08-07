@@ -6,7 +6,20 @@ import time
 hostname, sld, tld, port = 'www', 'tuna-server', 'pt', 80
 target = '{}.{}.{}'.format(hostname, sld, tld)
 
-list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "minDate", "maxDate","minDuration", "maxDuration", "maxDepth", "minDepth", "sensor"]
+list_args = ["name",
+             "vehicle",
+             "year",
+             "minDistTravelled",
+             "maxDistTravelled",
+             "startLat",
+             "startLon",
+             "minDate",
+             "maxDate",
+             "minDuration",
+             "maxDuration",
+             "maxDepth",
+             "minDepth",
+             "sensor"]
 
 
 # create an ipv4 (AF_INET) socket object using the tcp protocol (SOCK_STREAM)
