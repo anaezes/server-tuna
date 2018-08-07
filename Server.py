@@ -5,7 +5,7 @@ import time
 
 HOST, PORT = '', 8001
 
-list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "date", "duration", "maxDepth", "minDepth", "sensor"]
+list_args = ["name", "vehicle", "year", "distTravelled", "startLat", "startLon", "minDate", "maxDate", "minDuration", "maxDuration", "maxDepth", "minDepth", "sensor"]
 
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -47,13 +47,17 @@ def get_logs(args):
                 tmp = "Sensor.sensorName"
             elif key == "minDepth":
                 tmp += "maxDepth"
+            elif key == "minDuration" or key == "maxDuration":
+                tmp += "duration"
+            elif key == "minDate" or key == "maxDate":
+                tmp += "cast(date as datetime)"
             else:
                 tmp += key
 
-            if key == "minDepth":
-                tmp += ">" + value
-            elif key == "maxDepth":
-                tmp += "<" + value
+            if key == "minDepth" or key == "minDuration" or key == "minDate":
+                tmp += ">=" + value
+            elif key == "maxDepth" or key == "maxDuration" or key == "maxDate":
+                tmp += "<=" + value
             else:
                 tmp +=' LIKE ' + '\"' + value + '\"'
 
