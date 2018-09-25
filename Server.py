@@ -7,6 +7,7 @@ HOST, PORT = '', 8001
 
 list_args = ["name",
              "vehicle",
+             "type",
              "year",
              "minDistTravelled",
              "maxDistTravelled",
@@ -18,7 +19,15 @@ list_args = ["name",
              "maxDuration",
              "maxDepth",
              "minDepth",
-             "sensor"]
+             "sensor",
+             "all-vehicles",
+             "all-years",
+             "all-types"]
+
+query_sensor = ' AND log_sensor.logName ' \
+               'LIKE log.name AND log_sensor.sensorName' \
+               'LIKE sensor.sensorName ' \
+               'GROUP BY log.name, sensor.sensorName'
 
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -31,6 +40,9 @@ conn = sqlite3.connect("../database.db")
 c = conn.cursor()
 
 def get_args(r):
+    print("GET_ARGS: ")
+    print(r)
+
     args = {}
     for arg in list_args:
         try:
@@ -60,9 +72,46 @@ def get_correct_params(key):
     if key in ["minDate", "maxDate"]:
         return "cast(date as datetime)"
 
+    return key
+
+
+
+def get_operator(key,value):
+    if key in ["minDepth",
+               "minDuration",
+               "minDate",
+               "minDistTravelled"]:
+        return ">=" + value
+
+    if key in ["maxDepth",
+                 "maxDuration",
+                 "maxDate",
+                 "maxDistTravelled"]:
+        return "<=" + value
+
+    if key == "year":
+        return "=" + value
+
+    return ' LIKE ' + '\"' + value + '\"'
+
 
 
 def get_query(args):
+    print("ARGS: ")
+    print(args)
+
+    if('all-vehicles' in args):
+        query = str('SELECT DISTINCT vehicle FROM log group by log.vehicle')
+        return query
+
+    if('all-years' in args):
+        query = str('SELECT DISTINCT year FROM log group by log.year')
+        return query
+
+    if ('all-types' in args):
+        query = str('SELECT DISTINCT type FROM log group by log.type')
+        return query
+
     query = str('SELECT DISTINCT * FROM ')
 
     if 'sensor' in args:
@@ -74,44 +123,16 @@ def get_query(args):
 
         i = 0
         for key, value in args.items():
-            tmp = str()
 
-            if key in [ 'sensor',
-                    'minDepth',
-                    'minDuration',
-                    'maxDuration',
-                    'maxDistTravelled',
-                    'minDistTravelled',
-                    'minDate',
-                    'maxDate']:
-                tmp += get_correct_params(key)
-            else:
-                tmp += key
-
-            if key in ["minDepth",
-                    "minDuration",
-                    "minDate",
-                    "minDistTravelled"]:
-                tmp += ">=" + value
-            elif key in ["maxDepth",
-                      "maxDuration",
-                      "maxDate",
-                      "maxDistTravelled"]:
-                tmp += "<=" + value
-            else:
-                tmp += ' LIKE ' + '\"' + value + '\"'
-
-            query += tmp
+            query += get_correct_params(key)
+            query += get_operator(key, value)
 
             if i < len(args) - 1:
                 query += ' AND '
             i += 1
 
         if 'sensor' in args:
-            query += ' AND log_sensor.logName ' \
-                     'LIKE log.name AND log_sensor.sensorName' \
-                     'LIKE sensor.sensorName ' \
-                     'GROUP BY log.name, sensor.sensorName'
+            query += query_sensor
         else:
             query += " group by log.name "
 
@@ -126,6 +147,7 @@ def get_logs(args):
 
     c.execute(query)
     rows = c.fetchall()
+    print(rows)
     print(len(rows))
 
     return rows
