@@ -134,17 +134,21 @@ def get_logs(args):
 
 def send_logs(logs):
 
-    http_response = str(len(logs))
+    http_response = "HTTP/1.1 200 OK\n\n " + str(len(logs))
+    #http_response = str(len(logs))
     client_connection.sendall(http_response.encode('utf-8'))
     time.sleep(0.1)
-
-    http_response = str(logs)
+    print(logs)
+    http_response = "HTTP/1.1 200 OK\n\n " + str(logs)
+    #http_response = str(logs)
     client_connection.sendall(http_response.encode('utf-8'))
 
 
 while True:
     client_connection, client_address = listen_socket.accept()
     request = client_connection.recv(1024).decode('utf-8')
+
+    print('Request: ')
     print(request)
     r = request.split()
     print(r[1])
