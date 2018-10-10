@@ -38,6 +38,7 @@ list_args = ["name",
              "maxDepth",
              "minDepth",
              "sensor",
+             "contains",
              "all-vehicles",
              "all-years",
              "all-types"]
@@ -107,6 +108,9 @@ def get_operator(key,value):
             tmp += key + operatorType[key] + argSeparator[key] + value[len(value) - 1] + argSeparator[key]
 
         return tmp
+
+    if key in ["contains"]:
+        return 'name' + ' LIKE ' + '\"%' + value[0] + '%\" '
 
     return get_correct_params(key) + operatorType[key] + value[0]
 
