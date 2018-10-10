@@ -112,7 +112,11 @@ def get_query(args):
         query = str('SELECT DISTINCT type FROM log group by log.type')
         return query
 
-    query = str('SELECT DISTINCT * FROM ')
+    if ('name' in args):
+        query = str('SELECT DISTINCT warnings, errors  FROM ')
+        #return query
+    else:
+        query = str('SELECT DISTINCT name, vehicle, type, year, distTravelled, startLat, startLon, date, duration, maxDepth, maxAltitude FROM ')
 
     if 'sensor' in args:
         query += 'log_sensor, sensor, '
