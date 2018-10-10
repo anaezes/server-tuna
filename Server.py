@@ -47,6 +47,16 @@ query_sensor = ' AND log_sensor.logName ' \
                'LIKE sensor.sensorName ' \
                'GROUP BY log.name, sensor.sensorName'
 
+base = "SELECT DISTINCT "
+
+queries = {"all-types": 'type FROM log group by log.type',
+           "all-vehicles": 'vehicle FROM log group by log.vehicle',
+           "all-years": 'year FROM log group by log.year',
+           "all-warnings&errors": 'warnings, errors FROM ',
+           "all-info": 'name, vehicle, type, year, distTravelled, startLat, startLon, date, duration, '
+                       'maxDepth, maxAltitude FROM '}
+
+
 listen_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 listen_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 listen_socket.bind((HOST, PORT))
@@ -103,31 +113,26 @@ def get_operator(key,value):
 
 
 def get_query(args):
-    print("ARGS: ")
-    print(args)
 
     if('all-vehicles' in args):
-        query = str('SELECT DISTINCT vehicle FROM log group by log.vehicle')
-        return query
+        return base + queries['all-vehicles']
 
     if('all-years' in args):
-        query = str('SELECT DISTINCT year FROM log group by log.year')
-        return query
+        return base + queries['all-years']
 
     if ('all-types' in args):
-        query = str('SELECT DISTINCT type FROM log group by log.type')
-        return query
+        return base + queries['all-types']
 
     if ('name' in args):
-        query = str('SELECT DISTINCT warnings, errors  FROM ')
-        #return query
+        query = base + queries['warnings&errors']
     else:
-        query = str('SELECT DISTINCT name, vehicle, type, year, distTravelled, startLat, startLon, date, duration, maxDepth, maxAltitude FROM ')
+        query = base + queries['all-info']
 
     if 'sensor' in args:
         query += 'log_sensor, sensor, '
 
     query += 'log '
+
     if len(args) > 0:
         query += 'WHERE '
 
