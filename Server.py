@@ -39,28 +39,13 @@ print('Serving HTTP on port %s ...' % PORT)
 conn = sqlite3.connect("../database.db")
 c = conn.cursor()
 
-def get_args(r):
-    print("GET_ARGS: ")
-    print(r)
-
-    args = {}
-    for arg in list_args:
-        try:
-            query = parse.parse_qs(parse.urlparse(r).query)[arg][0]
-            print(arg + ": " + query)
-            args[arg] = query
-        except KeyError:
-            continue
-    return args
-
-
 
 def get_correct_params(key):
 
     if key == 'sensor':
         return "Sensor.sensorName"
 
-    if key == "minDepth":
+    if key in ["minDepth", "maxDepth"]:
         return "maxDepth"
 
     if key in ["minDuration", "maxDuration"]:
@@ -161,27 +146,23 @@ def get_logs(args):
 def send_logs(logs):
 
     http_response = "HTTP/1.1 200 OK\n\n " + str(len(logs))
-    #http_response = str(len(logs))
     client_connection.sendall(http_response.encode('utf-8'))
     time.sleep(0.1)
     print(logs)
     http_response = "HTTP/1.1 200 OK\n\n " + str(logs)
-    #http_response = str(logs)
     client_connection.sendall(http_response.encode('utf-8'))
 
 
 while True:
     client_connection, client_address = listen_socket.accept()
     request = client_connection.recv(1024).decode('utf-8')
-
-    print('Request: ')
+    print("REQUEST:")
     print(request)
     r = request.split()
-    print(r[1])
 
-    args = dict(get_args(r[1]))
+    parsed_url = urlparse(r[1])
 
-    logs = get_logs(args)
+    logs = get_logs(parse_qs(parsed_url.query))
 
     send_logs(logs)
 
