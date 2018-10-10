@@ -128,7 +128,7 @@ def get_query(args):
         return base + queries['all-types']
 
     if ('name' in args):
-        query = base + queries['warnings&errors']
+        query = base + queries['all-warnings&errors']
     else:
         query = base + queries['all-info']
 
