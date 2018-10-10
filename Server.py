@@ -1,9 +1,27 @@
 import socket
 import sqlite3
-from urllib import parse
+from urllib.parse import urlparse, parse_qs
 import time
 
 HOST, PORT = '', 8001
+
+operatorType = {"minDepth": " >= ",
+                "minDuration": " >= ",
+                "minDate": " >= ",
+                "minDistTravelled": " >= ",
+                "maxDepth": " <= ",
+                "maxDuration": " <= ",
+                "maxDate": " <= ",
+                "maxDistTravelled": " <= ",
+                "year": " = ",
+                "name": " LIKE ",
+                "type": " LIKE ",
+                "vehicle": " LIKE "}
+
+argSeparator = {"name": "\"",
+                "type": "\"",
+                "vehicle": "\"",
+                "year": ""}
 
 list_args = ["name",
              "vehicle",
@@ -57,27 +75,30 @@ def get_correct_params(key):
     if key in ["minDate", "maxDate"]:
         return "cast(date as datetime)"
 
-    return key
+    return ""
 
 
 
 def get_operator(key,value):
-    if key in ["minDepth",
-               "minDuration",
-               "minDate",
-               "minDistTravelled"]:
-        return ">=" + value
 
-    if key in ["maxDepth",
-                 "maxDuration",
-                 "maxDate",
-                 "maxDistTravelled"]:
-        return "<=" + value
+    if key == "name":
+        return key + operatorType['name'] + value[0]
 
-    if key == "year":
-        return "=" + value
+    if key in ["vehicle", "type", "year"]:
+        tmp = str('')
+        i = 0
+        if len(value) > 1:
+            tmp += "( "
+            while i < len(value) - 1:
+                tmp += key + operatorType[key] + argSeparator[key] + value[i] + argSeparator[key] + ' OR '
+                i = i+1
+            tmp += key + operatorType[key] + argSeparator[key] + value[len(value) - 1] + argSeparator[key] + ") "
+        else:
+            tmp += key + operatorType[key] + argSeparator[key] + value[len(value) - 1] + argSeparator[key]
 
-    return ' LIKE ' + '\"' + value + '\"'
+        return tmp
+
+    return get_correct_params(key) + operatorType[key] + value[0]
 
 
 
@@ -112,8 +133,6 @@ def get_query(args):
 
         i = 0
         for key, value in args.items():
-
-            query += get_correct_params(key)
             query += get_operator(key, value)
 
             if i < len(args) - 1:
